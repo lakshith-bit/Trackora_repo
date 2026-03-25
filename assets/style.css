@@ -1,0 +1,119 @@
+/* Global Dark Theme */
+.stApp {
+    background-color: #0F1117;
+}
+
+[data-testid="stSidebar"] {
+    background-color: #1a1c23;
+}
+
+/* Typography elements */
+html, body, [class*="css"], .stMarkdown p {
+    font-family: 'Inter', 'Poppins', sans-serif;
+    color: #e2e8f0;
+}
+
+/* Hide Default Header */
+header[data-testid="stHeader"] {
+    display: none;
+}
+
+/* Top Navbar Style */
+.top-navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    background-color: #1E2028;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+}
+
+.top-navbar h2 {
+    margin: 0;
+    color: #e2e8f0;
+}
+
+/* Custom Card Layout */
+.custom-card {
+    background-color: #1E2028;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.card-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: #fff;
+}
+
+.big-number {
+    font-size: 3rem;
+    font-weight: 700;
+    margin: 0;
+    background: -webkit-linear-gradient(135deg, #7F5AF0 0%, #2CB67D 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* Gradients for Hub Cards */
+.hub-card {
+    border-radius: 12px;
+    padding: 24px;
+    color: white;
+    margin-bottom: 15px;
+    border: none;
+}
+.hub-card h3, .hub-card p {
+    color: white !important;
+    margin: 0;
+}
+.hub-card h3 {
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.bg-purple { background: linear-gradient(135deg, #7F5AF0 0%, #a289f7 100%); }
+.bg-green { background: linear-gradient(135deg, #2CB67D 0%, #16a085 100%); }
+.bg-orange { background: linear-gradient(135deg, #e67e22 0%, #d35400 100%); }
+.bg-pink { background: linear-gradient(135deg, #e056fd 0%, #686de0 100%); }
+.bg-blue { background: linear-gradient(135deg, #22a6b3 0%, #30336b 100%); }
+
+/* Button Gradient Overrides */
+.stButton > button {
+    background: linear-gradient(135deg, #7F5AF0 0%, #2CB67D 100%) !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+    transition: filter 0.2s;
+}
+.stButton > button:hover {
+    filter: brightness(1.1);
+}
+
+.hub-button > button {
+    background: transparent !important;
+    border: 2px solid white !important;
+    color: white !important;
+}
+
+/* Form Styles */
+div[data-baseweb="input"] {
+    background-color: #2D3748 !important;
+    border-radius: 8px !important;
+    border: 1px solid #4A5568 !important;
+}
+div[data-baseweb="input"] input {
+    color: white !important;
+}
+
+/* Progress Bar */
+.stProgress > div > div > div > div {
+    background-color: #2CB67D !important;
+}

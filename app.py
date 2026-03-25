@@ -1,0 +1,132 @@
+import streamlit as st
+import os
+import db
+import auth
+
+# ✅ MOVE IMPORTS HERE (CRITICAL FIX)
+from views import dashboard, group_hub, practice_hub, streak_hub, collab_hub, performance
+
+# ------------------ PAGE CONFIG ------------------
+st.set_page_config(page_title="Trackora 🎵", page_icon="🎵", layout="wide")
+
+# ------------------ DB INIT ------------------
+if not os.path.exists(db.DB_NAME):
+    db.init_db()
+
+# ------------------ LOAD CSS ------------------
+def load_css():
+    if os.path.exists('assets/style.css'):
+        with open('assets/style.css') as f:
+            st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
+
+load_css()
+
+# ------------------ SESSION STATE INIT ------------------
+st.session_state.setdefault("user_id", None)
+st.session_state.setdefault("username", "")
+st.session_state.setdefault("page", "dashboard")
+
+# ------------------ NAVBAR ------------------
+def render_navbar():
+    username = st.session_state.get('username', 'User')
+    st.markdown(f"""
+        <div style="
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            padding:10px 20px;
+            background:#1E2028;
+            border-radius:10px;
+            margin-bottom:20px;">
+            <h2 style="margin:0;">🎵 Trackora</h2>
+            <div>👤 {username}</div>
+        </div>
+    """, unsafe_allow_html=True)
+
+# ------------------ SIDEBAR ------------------
+def render_sidebar():
+    with st.sidebar:
+        st.markdown("## 🔥 Streaks")
+
+        user = None
+        if st.session_state.user_id:
+            user = db.get_user_by_id(st.session_state.user_id)
+
+        current_streak = user['current_streak'] if user else 0
+
+        st.markdown(f"""
+        <div style="padding:15px; background:#1E2028; border-radius:12px; text-align:center; margin-bottom:10px;">
+            <p style="margin:0; color:#cbd5e1;">Individual Streak</p>
+            <h2>{current_streak}</h2>
+            <p style="margin:0; color:#94a3b8;">Days</p>
+        </div>
+        """, unsafe_allow_html=True)
+
+        st.markdown(f"""
+        <div style="padding:15px; background:#1E2028; border-radius:12px; text-align:center;">
+            <p style="margin:0; color:#cbd5e1;">Group Streak</p>
+            <h2 style="color:#e67e22;">0</h2>
+            <p style="margin:0; color:#94a3b8;">Days</p>
+        </div>
+        """, unsafe_allow_html=True)
+
+        st.markdown("## 📌 Navigation")
+
+        pages = {
+            "Dashboard": "dashboard",
+            "Group Hub": "group_hub",
+            "Practice Hub": "practice_hub",
+            "Streak Hub": "streak_hub",
+            "Collab Hub": "collab_hub",
+            "Performance": "performance_page"
+        }
+
+        for name, key in pages.items():
+            if st.button(name, key=f"nav_{key}", use_container_width=True):
+                st.session_state.page = key
+                st.rerun()  # ✅ controlled rerun
+
+        if st.button("Logout", key="logout_btn", use_container_width=True):
+            auth.logout_user()
+
+# ------------------ MAIN APP ------------------
+def main():
+
+    # ✅ STRONG LOGIN CHECK
+    if "user_id" not in st.session_state or st.session_state.user_id is None:
+        auth.show_auth_page()
+        return
+
+    render_navbar()
+    render_sidebar()
+
+    page = st.session_state.page
+
+    try:
+        if page == 'dashboard':
+            dashboard.render()
+
+        elif page == 'group_hub':
+            group_hub.render()
+
+        elif page == 'practice_hub':
+            practice_hub.render()
+
+        elif page == 'streak_hub':
+            streak_hub.render()
+
+        elif page == 'collab_hub':
+            collab_hub.render()
+
+        elif page == 'performance_page':
+            performance.render()
+
+        else:
+            dashboard.render()
+
+    except Exception as e:
+        st.error(f"Error loading page: {e}")
+
+# ------------------ RUN ------------------
+if __name__ == "__main__":
+    main()
