@@ -23,11 +23,24 @@ header[data-testid="stHeader"] {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 10px 20px;
-    background-color: #1E2028;
-    border-radius: 8px;
-    margin-bottom: 20px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+    padding: 15px 25px;
+    background-color: rgba(30,32,40,0.85); /* Glassmorphic base */
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 12px;
+    margin-bottom: 30px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    border: 1px solid rgba(255,255,255,0.05);
+    position: sticky;
+    top: 15px;
+    z-index: 999;
+}
+
+/* Fix Streamlit's huge default top gaps */
+.block-container {
+    padding-top: 1.5rem !important;
+    padding-bottom: 2rem !important;
+    max-width: 1200px !important;
 }
 
 .top-navbar h2 {
@@ -43,6 +56,13 @@ header[data-testid="stHeader"] {
     margin-bottom: 20px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
     border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+}
+
+.custom-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .card-title {
@@ -89,12 +109,16 @@ header[data-testid="stHeader"] {
     background: linear-gradient(135deg, #7F5AF0 0%, #2CB67D 100%) !important;
     color: white !important;
     border: none !important;
-    border-radius: 8px !important;
+    border-radius: 10px !important;
     font-weight: 600 !important;
-    transition: filter 0.2s;
+    padding: 8px 16px !important;
+    transition: transform 0.2s, filter 0.2s, box-shadow 0.2s !important;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2) !important;
 }
 .stButton > button:hover {
-    filter: brightness(1.1);
+    filter: brightness(1.15);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0,0,0,0.4) !important;
 }
 
 .hub-button > button {

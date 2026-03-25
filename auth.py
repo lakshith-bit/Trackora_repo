@@ -52,10 +52,16 @@ def show_auth_page():
             with st.form("signup_form"):
                 new_user = st.text_input("Username")
                 new_pass = st.text_input("Password", type="password")
+                new_name = st.text_input("Full Name")
+                new_email = st.text_input("Email")
+                new_age = st.number_input("Age", min_value=5, max_value=120, value=18)
                 instrument = st.selectbox("Primary Instrument", ["Piano", "Guitar", "Violin", "Drums", "Vocals", "Other"])
                 region = st.text_input("Region", placeholder="e.g. Asia")
                 genre = st.selectbox("Favorite Genre", ["Classical", "Rock", "Jazz", "Pop", "Electronic", "Other"])
                 language = st.selectbox("Preferred Language", ["English", "Spanish", "French", "Other"])
+                experience = st.selectbox("Experience Level", ["Beginner", "Intermediate", "Advanced", "Professional"])
+                teacher = st.text_input("Teacher/Mentor (Optional)")
+                is_public = st.checkbox("Make Profile Public", value=True)
 
                 submitted = st.form_submit_button("Sign Up", use_container_width=True)
 
@@ -74,10 +80,16 @@ def show_auth_page():
                         db.create_user(
                             new_user,
                             hash_password(new_pass),
+                            new_name,
+                            new_email,
+                            new_age,
                             instrument,
                             region,
                             genre,
-                            language
+                            language,
+                            experience,
+                            teacher,
+                            is_public
                         )
                         st.success("Account created! Please switch to Login.")
 

@@ -17,10 +17,19 @@ def init_db():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             username TEXT UNIQUE,
             password_hash TEXT,
+            name TEXT,
+            email TEXT UNIQUE,
+            age INTEGER,
             instrument TEXT,
             region TEXT,
             genre TEXT,
             language TEXT,
+            experience TEXT,
+            teacher TEXT,
+            is_public BOOLEAN DEFAULT 1,
+            profile_points INTEGER DEFAULT 0,
+            target_bpm INTEGER DEFAULT 85,
+            current_bpm INTEGER DEFAULT 70,
             current_streak INTEGER DEFAULT 0,
             highest_streak INTEGER DEFAULT 0,
             last_practice_date DATE,
@@ -74,6 +83,35 @@ def init_db():
         )
     ''')
     
+    # Tasks
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS daily_tasks (
+            user_id INTEGER,
+            task_date DATE,
+            task_desc TEXT,
+            completed BOOLEAN DEFAULT 0,
+            PRIMARY KEY (user_id, task_date)
+        )
+    ''')
+    
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS group_daily_tasks (
+            group_id INTEGER,
+            task_date DATE,
+            task_desc TEXT,
+            PRIMARY KEY (group_id, task_date)
+        )
+    ''')
+    
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS group_task_completions (
+            group_id INTEGER,
+            user_id INTEGER,
+            task_date DATE,
+            PRIMARY KEY (group_id, user_id, task_date)
+        )
+    ''')
+    
     conn.commit()
     conn.close()
 
@@ -102,12 +140,20 @@ def get_user_by_id(user_id):
     res = run_query("SELECT * FROM users WHERE id=?", (user_id,))
     return res[0] if res else None
 
-def create_user(username, password_hash, instrument, region, genre, language):
+def create_user(username, password_hash, name, email, age, instrument, region, genre, language, experience, teacher, is_public):
     query = """
-    INSERT INTO users (username, password_hash, instrument, region, genre, language) 
-    VALUES (?, ?, ?, ?, ?, ?)
+    INSERT INTO users (username, password_hash, name, email, age, instrument, region, genre, language, experience, teacher, is_public) 
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """
-    return run_query(query, (username, password_hash, instrument, region, genre, language), fetch=False)
+    return run_query(query, (username, password_hash, name, email, age, instrument, region, genre, language, experience, teacher, is_public), fetch=False)
+
+def update_profile_points(user_id, points):
+    query = "UPDATE users SET profile_points = profile_points + ? WHERE id = ?"
+    run_query(query, (points, user_id), fetch=False)
+
+def update_user_bpm(user_id, new_bpm):
+    query = "UPDATE users SET current_bpm = ? WHERE id = ?"
+    run_query(query, (new_bpm, user_id), fetch=False)
 
 def update_streak(user_id, duration_minutes):
     user = get_user_by_id(user_id)
@@ -162,3 +208,65 @@ def join_group(group_id, user_id):
         return True
     except:
         return False # Already joined or error
+        
+def get_or_create_daily_task(user_id):
+    import random
+    today = datetime.now().strftime('%Y-%m-%d')
+    res = run_query("SELECT * FROM daily_tasks WHERE user_id = ? AND task_date = ?", (user_id, today))
+    if res:
+        return res[0]
+    
+    tasks = ["Practice scales for 15 mins", "Upload a new recording", "Play a new piece", "Review a collaboration request"]
+    desc = random.choice(tasks)
+    run_query("INSERT INTO daily_tasks (user_id, task_date, task_desc, completed) VALUES (?, ?, ?, 0)", (user_id, today, desc), fetch=False)
+    return {"user_id": user_id, "task_date": today, "task_desc": desc, "completed": 0}
+
+def complete_daily_task(user_id):
+    today = datetime.now().strftime('%Y-%m-%d')
+    run_query("UPDATE daily_tasks SET completed = 1 WHERE user_id = ? AND task_date = ?", (user_id, today), fetch=False)
+    # Give them a 1 min practice entry to trigger streak update logic easily
+    update_streak(user_id, 1)
+
+def get_or_create_group_task(group_id):
+    import random
+    today = datetime.now().strftime('%Y-%m-%d')
+    res = run_query("SELECT * FROM group_daily_tasks WHERE group_id = ? AND task_date = ?", (group_id, today))
+    if res:
+        return res[0]
+    
+    tasks = ["All members must upload a recording", "All members must uphold their streaks", "All members must play a piece"]
+    desc = random.choice(tasks)
+    run_query("INSERT INTO group_daily_tasks (group_id, task_date, task_desc) VALUES (?, ?, ?)", (group_id, today, desc), fetch=False)
+    return {"group_id": group_id, "task_date": today, "task_desc": desc}
+
+def complete_group_task_for_user(group_id, user_id):
+    try:
+        today = datetime.now().strftime('%Y-%m-%d')
+        run_query("INSERT INTO group_task_completions (group_id, user_id, task_date) VALUES (?, ?, ?)", (group_id, user_id, today), fetch=False)
+        return True
+    except sqlite3.IntegrityError:
+        return False
+
+def get_group_completion_status(group_id):
+    today = datetime.now().strftime('%Y-%m-%d')
+    members = run_query("SELECT user_id FROM group_members WHERE group_id = ?", (group_id,))
+    completions = run_query("SELECT user_id FROM group_task_completions WHERE group_id = ? AND task_date = ?", (group_id, today))
+    
+    member_ids = {m['user_id'] for m in members}
+    completed_ids = {c['user_id'] for c in completions}
+    
+    return {
+        "total_members": len(member_ids),
+        "completed": len(completed_ids),
+        "all_done": len(member_ids) > 0 and member_ids == completed_ids
+    }
+
+def complete_all_group_tasks_for_user(user_id):
+    from datetime import datetime
+    today = datetime.now().strftime('%Y-%m-%d')
+    groups = run_query("SELECT group_id FROM group_members WHERE user_id = ?", (user_id,))
+    if groups:
+        for g in groups:
+            done = run_query("SELECT id FROM group_task_completions WHERE group_id = ? AND user_id = ? AND task_date = ?", (g['group_id'], user_id, today))
+            if not done:
+                run_query("INSERT INTO group_task_completions (group_id, user_id, task_date) VALUES (?, ?, ?)", (g['group_id'], user_id, today), fetch=False)

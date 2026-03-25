@@ -2,16 +2,16 @@ import streamlit as st
 import os
 import db
 import auth
+import math
 
 # ✅ MOVE IMPORTS HERE (CRITICAL FIX)
-from views import dashboard, group_hub, practice_hub, streak_hub, collab_hub, performance
+from views import dashboard, group_hub, practice_hub, streak_hub, collab_hub, performance, leaderboard_hub, feed_hub
 
 # ------------------ PAGE CONFIG ------------------
 st.set_page_config(page_title="Trackora 🎵", page_icon="🎵", layout="wide")
 
 # ------------------ DB INIT ------------------
-if not os.path.exists(db.DB_NAME):
-    db.init_db()
+db.init_db()
 
 # ------------------ LOAD CSS ------------------
 def load_css():
@@ -28,20 +28,59 @@ st.session_state.setdefault("page", "dashboard")
 
 # ------------------ NAVBAR ------------------
 def render_navbar():
-    username = st.session_state.get('username', 'User')
-    st.markdown(f"""
-        <div style="
-            display:flex;
-            justify-content:space-between;
-            align-items:center;
-            padding:10px 20px;
-            background:#1E2028;
-            border-radius:10px;
-            margin-bottom:20px;">
-            <h2 style="margin:0;">🎵 Trackora</h2>
-            <div>👤 {username}</div>
-        </div>
-    """, unsafe_allow_html=True)
+    col1, col2 = st.columns([10, 2])
+    with col1:
+        st.markdown(f"""
+            <div style="
+                display:flex;
+                align-items:center;
+                padding:10px 20px;
+                background:#1E2028;
+                border-radius:10px;
+                margin-bottom:20px;">
+                <h2 style="margin:0; color:white;">🎵 Trackora</h2>
+            </div>
+        """, unsafe_allow_html=True)
+    with col2:
+        user_id = st.session_state.get('user_id')
+        if user_id:
+            user = db.get_user_by_id(user_id)
+            if user:
+                with st.popover("👤 Profile", use_container_width=True):
+                    st.markdown("### User Profile")
+                    
+                    # Compute XP
+                    total_hours = user.get('total_hours') or 0
+                    profile_points = user.get('profile_points') or 0
+                    current_streak = user.get('current_streak') or 0
+                    
+                    try:
+                        xp = int((total_hours * 100) + (profile_points * 50) + (current_streak * 25))
+                    except:
+                        xp = 0
+                        
+                    level = int(math.sqrt(max(0, xp))) // 10 + 1
+                    next_level_xp = ((level * 10) ** 2)
+                    prev_level_xp = (((level - 1) * 10) ** 2)
+                    progress = (xp - prev_level_xp) / max(1, next_level_xp - prev_level_xp)
+                    
+                    st.markdown(f"**Level {level} Musician** ✨")
+                    st.progress(min(progress, 1.0))
+                    st.write(f"*{xp} / {next_level_xp} XP*")
+                    
+                    st.divider()
+                    st.write(f"**Name:** {user.get('name', 'N/A')}")
+                    st.write(f"**Email:** {user.get('email', 'N/A')}")
+                    st.write(f"**Age:** {user.get('age', 'N/A')}")
+                    st.write(f"**Instrument:** {user.get('instrument', 'N/A')}")
+                    st.write(f"**Genre:** {user.get('genre', 'N/A')}")
+                    st.write(f"**Experience:** {user.get('experience', 'N/A')}")
+                    st.write(f"**Teacher:** {user.get('teacher', 'N/A')}")
+                    st.write(f"**Public:** {'Yes' if user.get('is_public') else 'No'}")
+                    
+                    if level >= 5:
+                        st.divider()
+                        st.success("🏆 Maestro Badge Acquired! (Level 5+)")
 
 # ------------------ SIDEBAR ------------------
 def render_sidebar():
@@ -74,11 +113,13 @@ def render_sidebar():
 
         pages = {
             "Dashboard": "dashboard",
+            "Feed Hub 📸": "feed_hub",
             "Group Hub": "group_hub",
             "Practice Hub": "practice_hub",
             "Streak Hub": "streak_hub",
             "Collab Hub": "collab_hub",
-            "Performance": "performance_page"
+            "Performance": "performance_page",
+            "Leaderboard": "leaderboard_hub"
         }
 
         for name, key in pages.items():
@@ -120,6 +161,12 @@ def main():
 
         elif page == 'performance_page':
             performance.render()
+            
+        elif page == 'leaderboard_hub':
+            leaderboard_hub.render()
+            
+        elif page == 'feed_hub':
+            feed_hub.render()
 
         else:
             dashboard.render()
