@@ -112,6 +112,15 @@ def init_db():
         )
     ''')
     
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS practice_likes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER,
+            practice_id INTEGER,
+            UNIQUE(user_id, practice_id)
+        )
+    ''')
+    
     conn.commit()
     conn.close()
 
@@ -267,6 +276,6 @@ def complete_all_group_tasks_for_user(user_id):
     groups = run_query("SELECT group_id FROM group_members WHERE user_id = ?", (user_id,))
     if groups:
         for g in groups:
-            done = run_query("SELECT id FROM group_task_completions WHERE group_id = ? AND user_id = ? AND task_date = ?", (g['group_id'], user_id, today))
+            done = run_query("SELECT 1 FROM group_task_completions WHERE group_id = ? AND user_id = ? AND task_date = ?", (g['group_id'], user_id, today))
             if not done:
                 run_query("INSERT INTO group_task_completions (group_id, user_id, task_date) VALUES (?, ?, ?)", (g['group_id'], user_id, today), fetch=False)

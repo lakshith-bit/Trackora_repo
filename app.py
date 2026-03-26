@@ -112,14 +112,14 @@ def render_sidebar():
         st.markdown("## 📌 Navigation")
 
         pages = {
-            "Dashboard": "dashboard",
+            "Dashboard 🏠": "dashboard",
             "Feed Hub 📸": "feed_hub",
-            "Group Hub": "group_hub",
-            "Practice Hub": "practice_hub",
-            "Streak Hub": "streak_hub",
-            "Collab Hub": "collab_hub",
-            "Performance": "performance_page",
-            "Leaderboard": "leaderboard_hub"
+            "Group Hub 👥": "group_hub",
+            "Practice Hub 🎸": "practice_hub",
+            "Streak Hub 🔥": "streak_hub",
+            "Collab Hub 🤝": "collab_hub",
+            "Performance Hub 📊": "performance_page",
+            "Leaderboard 🏆": "leaderboard_hub"
         }
 
         for name, key in pages.items():
